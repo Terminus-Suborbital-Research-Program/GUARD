@@ -1,35 +1,39 @@
 #!/usr/bin/env python3
-import os, time, datetime
+import os, time
 
 from radiacode import RadiaCode
 
-# 1) Read the boot ID so filenames collide only between boots
-with open("/proc/sys/kernel/random/boot_id") as f:
-    boot_id = f.read().strip()
+# —— 1. bump the counter —————————————————————————————
+ctr_file = "/var/lib/radiacode/counter.txt"
+os.makedirs(os.path.dirname(ctr_file), exist_ok=True)
 
-# 2) Prepare log directory
+try:
+    with open(ctr_file, "r") as f:
+        counter = int(f.read().strip())
+except FileNotFoundError:
+    counter = 0
+
+counter += 1
+with open(ctr_file, "w") as f:
+    f.write(str(counter))
+
+# —— 2. open per-run logs —————————————————————————————
 log_dir = "/var/log/radiacode"
 os.makedirs(log_dir, exist_ok=True)
 
-# 3) Open one file per data type
-ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-data_f    = open(f"{log_dir}/data_{boot_id}_{ts}.log",    "a", buffering=1)
-spectrum_f= open(f"{log_dir}/spectrum_{boot_id}_{ts}.log","a", buffering=1)
-accum_f   = open(f"{log_dir}/accum_{boot_id}_{ts}.log",   "a", buffering=1)
+data_f     = open(f"{log_dir}/data_{counter}.log",     "a", buffering=1)
+spectrum_f = open(f"{log_dir}/spectrum_{counter}.log", "a", buffering=1)
+accum_f    = open(f"{log_dir}/accum_{counter}.log",    "a", buffering=1)
 
+# —— 3. your main loop ——————————————————————————————
 device = RadiaCode()
-
 while True:
     now = time.time()
-    data     = device.data_buf()
-    spectrum = device.spectrum()
-    accum    = device.spectrum_accum()
 
-    # write raw lists or numbers with timestamps
-    for d in data:
+    for d in device.data_buf():
         data_f.write(f"{now} {d}\n")
-    spectrum_f.write(f"{now} {spectrum}\n")
-    accum_f.write(f"{now} {accum}\n")
+    spectrum_f.write(f"{now} {device.spectrum()}\n")
+    accum_f.write(f"{now} {device.spectrum_accum()}\n")
 
     time.sleep(1)
 
