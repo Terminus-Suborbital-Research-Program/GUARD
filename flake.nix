@@ -13,17 +13,11 @@
 
         # Radiacode python packages
         radiacode = pkgs.callPackage ./packages/radiacode.nix { };
-
-        # Radiacode utilities 
-        radiacode-tools = pkgs.callPackage ./packages/radiacode-tools.nix {
-          inherit radiacode;
-        };
+        radiaread =
+          pkgs.callPackage ./packages/radiaread.nix { inherit radiacode; };
 
       in {
-        packages = {
-          inherit radiacode radiacode-tools;
-          default = radiacode-tools;
-        };
+        packages = { inherit radiacode radiaread; };
 
         devShells.default =
           pkgs.mkShell { buildInputs = [ pkgs.python312 radiacode ]; };
