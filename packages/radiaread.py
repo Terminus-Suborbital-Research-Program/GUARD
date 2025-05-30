@@ -6,6 +6,11 @@ import time
 from radiacode import RadiaCode
 
 def main():
+    device = RadiaCode()
+    device.set_device_on(True)
+    device.spectrum_reset()
+    device.dose_reset()
+    
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <log_directory>")
         sys.exit(1)
@@ -35,10 +40,6 @@ def main():
     accum_f    = open(accum_path,    "a", buffering=1)
 
     # —— 3. your main loop ——————————————————————————————
-    device = RadiaCode()
-    device.set_device_on(True)
-    device.spectrum_reset()
-    device.dose_reset()
 
     while True:
         now = time.time()
