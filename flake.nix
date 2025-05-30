@@ -19,7 +19,6 @@
       in {
         packages = { inherit radiacode radiaread; };
 
-        devShells.default =
-          pkgs.mkShell { buildInputs = [ pkgs.python312 radiacode ]; };
+        devShells.default = pkgs.mkShell { buildInputs = [ radiaread ]; };
       });
 }

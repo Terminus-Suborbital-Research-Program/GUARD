@@ -1,39 +1,54 @@
 #!/usr/bin/env python3
-import os, time
+import os
+import sys
+import time
 
 from radiacode import RadiaCode
 
-# —— 1. bump the counter —————————————————————————————
-ctr_file = "/var/lib/radiacode/counter.txt"
-os.makedirs(os.path.dirname(ctr_file), exist_ok=True)
+def main():
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} <log_directory>")
+        sys.exit(1)
 
-try:
-    with open(ctr_file, "r") as f:
-        counter = int(f.read().strip())
-except FileNotFoundError:
-    counter = 0
+    log_dir = sys.argv[1]
+    os.makedirs(log_dir, exist_ok=True)
 
-counter += 1
-with open(ctr_file, "w") as f:
-    f.write(str(counter))
+    # —— 1. bump the counter —————————————————————————————
+    ctr_file = os.path.join(log_dir, "counter.txt")
+    try:
+        with open(ctr_file, "r") as f:
+            counter = int(f.read().strip())
+    except FileNotFoundError:
+        counter = 0
 
-# —— 2. open per-run logs —————————————————————————————
-log_dir = "/var/log/radiacode"
-os.makedirs(log_dir, exist_ok=True)
+    counter += 1
+    with open(ctr_file, "w") as f:
+        f.write(str(counter))
 
-data_f     = open(f"{log_dir}/data_{counter}.log",     "a", buffering=1)
-spectrum_f = open(f"{log_dir}/spectrum_{counter}.log", "a", buffering=1)
-accum_f    = open(f"{log_dir}/accum_{counter}.log",    "a", buffering=1)
+    # —— 2. open per-run logs —————————————————————————————
+    data_path     = os.path.join(log_dir, f"data_{counter}.log")
+    spectrum_path = os.path.join(log_dir, f"spectrum_{counter}.log")
+    accum_path    = os.path.join(log_dir, f"accum_{counter}.log")
 
-# —— 3. your main loop ——————————————————————————————
-device = RadiaCode()
-while True:
-    now = time.time()
+    data_f     = open(data_path,     "a", buffering=1)
+    spectrum_f = open(spectrum_path, "a", buffering=1)
+    accum_f    = open(accum_path,    "a", buffering=1)
 
-    for d in device.data_buf():
-        data_f.write(f"{now} {d}\n")
-    spectrum_f.write(f"{now} {device.spectrum()}\n")
-    accum_f.write(f"{now} {device.spectrum_accum()}\n")
+    # —— 3. your main loop ——————————————————————————————
+    device = RadiaCode()
+    device.set_device_on(True)
+    device.spectrum_reset()
+    device.dose_reset()
 
-    time.sleep(1)
+    while True:
+        now = time.time()
 
+        for d in device.data_buf():
+            data_f.write(f"{now} {d}\n")
+        spectrum_f.write(f"{now} {device.spectrum()}\n")
+        accum_f.write(f"{now} {device.spectrum_accum()}\n")
+
+        time.sleep(1)
+
+if __name__ == "__main__":
+    main()
