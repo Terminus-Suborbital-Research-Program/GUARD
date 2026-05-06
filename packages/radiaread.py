@@ -10,6 +10,7 @@ def main():
     device.set_device_on(True)
     device.spectrum_reset()
     device.dose_reset()
+    device.set_sound_on(True)
     
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <log_directory>")
