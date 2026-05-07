@@ -3,7 +3,7 @@ import os
 import sys
 import time
 
-from radiacode import RadiaCode
+from radiacode import RadiaCode, CTRL
 
 def main():
     device = RadiaCode()
@@ -11,6 +11,7 @@ def main():
     device.spectrum_reset()
     device.dose_reset()
     device.set_sound_on(True)
+    device.set_sound_ctrl([CTRL.CLICKS])
     
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <log_directory>")
